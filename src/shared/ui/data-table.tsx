@@ -3,55 +3,66 @@
 import { useState } from 'react';
 import {
 	type ColumnDef,
+	type RowData,
 	type SortingState,
+	columnFilteringFeature,
+	columnVisibilityFeature,
+	coreCellsFeature,
+	coreColumnsFeature,
+	coreHeadersFeature,
+	createCoreRowModel,
+	createFilteredRowModel,
+	createSortedRowModel,
 	flexRender,
-	getCoreRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
-	useReactTable,
+	globalFilteringFeature,
+	rowPaginationFeature,
+	rowSortingFeature,
+	tableFeatures,
+	useTable,
 } from '@tanstack/react-table';
 
-import { Button } from '@shared/ui/button';
+import { Button } from '@shared/ui/primitives/button';
 import { cn } from '@shared/utils/cn';
 
-interface DataTableProps<TData, TValue> {
-	columns: ColumnDef<TData, TValue>[];
+const features = tableFeatures({
+	rowSortingFeature,
+	columnFilteringFeature,
+	columnVisibilityFeature,
+	globalFilteringFeature,
+	rowPaginationFeature,
+	coreCellsFeature,
+	coreColumnsFeature,
+	coreHeadersFeature,
+	coreRowModel: createCoreRowModel(),
+	sortedRowModel: createSortedRowModel(),
+	filteredRowModel: createFilteredRowModel(),
+});
+
+interface DataTableProps<TData extends RowData> {
+	columns: ColumnDef<typeof features, TData>[];
 	data: TData[];
-	/** Global search input placeholder. Pass `null` to hide the search box. */
 	searchPlaceholder?: string | null;
-	/** Rows per page (default 10). */
 	pageSize?: number;
 	className?: string;
 }
 
-/**
- * Generic, presentational table powered by TanStack Table.
- *
- * Business-logic agnostic: callers supply typed `columns` and `data`. Sorting,
- * global filtering, and pagination are handled client-side out of the box.
- */
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData>({
 	columns,
 	data,
 	searchPlaceholder = 'Search…',
 	pageSize = 10,
 	className,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [globalFilter, setGlobalFilter] = useState('');
 
-	const table = useReactTable({
+	const table = useTable({
+		features,
 		data,
 		columns,
-		state: { sorting, globalFilter },
-		initialState: { pagination: { pageSize } },
+		state: { sorting, globalFilter, pagination: { pageIndex: 0, pageSize } },
 		onSortingChange: setSorting,
 		onGlobalFilterChange: setGlobalFilter,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 	});
 
 	return (
@@ -147,7 +158,7 @@ export function DataTable<TData, TValue>({
 
 			<div className="flex items-center justify-between gap-4">
 				<p className="text-sm text-muted-foreground">
-					Page {table.getState().pagination.pageIndex + 1} of{' '}
+					Page {table.state.pagination.pageIndex + 1} of{' '}
 					{table.getPageCount() || 1}
 				</p>
 				<div className="flex gap-2">
