@@ -1,0 +1,34 @@
+# CODEOWNERS
+#
+# Defines default reviewers automatically assigned to pull requests.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Format: <path pattern>  <@github-username or @org/team>
+# NOTE: Replace @OWNER below with a real GitHub username or a team (e.g. @your-org/frontend).
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Global fallback — any file not matched below
+# ──────────────────────────────────────────────────────────────────────────────
+*                       @OWNER
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Application source
+# ──────────────────────────────────────────────────────────────────────────────
+/src/app/               @OWNER
+/src/core/              @OWNER
+/src/modules/           @OWNER
+/src/shared/            @OWNER
+/src/middleware.ts      @OWNER
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Build, tooling, and CI config
+# ──────────────────────────────────────────────────────────────────────────────
+/.github/               @OWNER
+/docs/                  @OWNER
+Dockerfile              @OWNER
+next.config.ts          @OWNER
+vitest.config.ts        @OWNER
+stryker.conf.json       @OWNER
+tsconfig.json           @OWNER
+package.json            @OWNER
+pnpm-lock.yaml          @OWNER

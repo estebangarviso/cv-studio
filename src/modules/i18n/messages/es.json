@@ -1,0 +1,15 @@
+{
+	"nav": {
+		"home": "Inicio",
+		"dashboard": "Panel"
+	},
+	"home": {
+		"welcome": "Template inicializado correctamente.",
+		"title": "Bienvenido"
+	},
+	"common": {
+		"loading": "Cargando...",
+		"error": "Algo salió mal",
+		"notFound": "Página no encontrada"
+	}
+}

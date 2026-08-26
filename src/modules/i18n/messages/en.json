@@ -1,0 +1,15 @@
+{
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard"
+  },
+  "home": {
+    "welcome": "Template initialized successfully.",
+    "title": "Welcome"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "notFound": "Page not found"
+  }
+}

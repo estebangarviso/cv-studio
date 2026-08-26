@@ -1,0 +1,47 @@
+# ─── Dependencies ──────────────────────────────────
+node_modules/
+.pnpm-store/
+
+# ─── Next.js ───────────────────────────────────────
+.next/
+out/
+build/
+dist/
+
+# ─── Turbopack ─────────────────────────────────────
+.turbo/
+
+# ─── Testing & coverage ────────────────────────────
+coverage/
+.reports/
+
+# ─── API generation ────────────────────────────────
+# Type definitions generated from the backend OpenAPI spec via `pnpm openapi:gen`.
+# Regenerate locally / in CI instead of committing the output.
+src/core/api/v1.ts
+
+# ─── Environment ───────────────────────────────────
+.env
+.env.local
+.env*.local
+
+# ─── IDE ───────────────────────────────────────────
+.idea/
+*.swp
+*.swo
+
+# ─── OS ────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Debug logs ────────────────────────────────────
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ─── Vercel ────────────────────────────────────────
+.vercel
+
+# ─── TypeScript ────────────────────────────────────
+*.tsbuildinfo
+next-env.d.ts
