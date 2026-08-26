@@ -1,38 +1,49 @@
-# AGENTS.md
+# AGENTS.md — CV Studio
 
-Canonical, IDE-agnostic instructions for any AI coding assistant working in this repository (Cursor, Copilot, Claude, etc.). This file, together with `package.json`, `README.md`, and `docs/README.md`, is the single source of truth. Do not duplicate rules elsewhere — reference this file.
+Canonical rules for any AI coding assistant working in this repository. This file is the single source of truth for enforceable conventions. `README.md` owns onboarding; `docs/` owns deep dives.
 
-**Source-of-truth ownership:** `AGENTS.md` owns enforceable rules and conventions; `README.md` owns onboarding and quick start; `docs/README.md` + `docs/architecture/00_index.md` own structure, diagrams, and patterns. Do not copy rule blocks into those files — link here instead.
+**Verify before done:** `pnpm lint`, `pnpm type-check`, and `pnpm test` for logic changes.
 
-> **Forked from the agnostic starter?** This file ships template *defaults*. Adapt it
-> to your product: add your product name and a domain glossary, list your real modules
-> under **Architecture rules**, and rewrite the agnostic guardrails in **What NOT to do**
-> (notably the *"no proprietary product names"* line, which flips once you have a product).
-> See **[README → Customize your fork](./README.md#customize-your-fork)** for the full checklist
-> and **[docs/guides/001_fork-customization-example.md](./docs/guides/001_fork-customization-example.md)** for a worked example.
+## Product
+
+CV Studio — a web app where users create, edit, and export professional CVs. Google OAuth for authentication, Google Drive as storage (SoT), browser-native PDF export via `window.print()`.
+
+## Domain glossary
+
+| Term         | Meaning                                                                                         |
+| ------------ | ----------------------------------------------------------------------------------------------- |
+| Resume / CV  | A user's curriculum vitae document                                                              |
+| Template     | Visual layout for rendering a CV (React component + config)                                     |
+| CvData       | The JSON structure holding all CV content (personal, education, experience, skills, references) |
+| Drive folder | `CV Studio` folder in the user's Google Drive; each CV is a JSON file                           |
+| Preview      | The A4 print-ready React component that renders CvData                                          |
+| Editor       | Split view: form (left) + live preview (right)                                                  |
 
 ## Project snapshot
 
-| Topic              | Value                                                                 |
-| ------------------ | --------------------------------------------------------------------- |
-| Framework          | Next.js 16 (App Router, Turbopack), React 19                          |
-| Language           | TypeScript, strict mode                                               |
-| Server state       | TanStack Query (`@tanstack/react-query`)                              |
-| Client state       | Zustand (`zustand`)                                                   |
-| Forms              | `react-hook-form` + `@hookform/resolvers` + Zod                       |
-| API client         | `openapi-fetch`, typed from an OpenAPI 3.1 spec                       |
-| Styling            | Tailwind CSS v4, CSS variable theming                                 |
-| Testing            | Vitest + React Testing Library                                        |
-| Package manager    | pnpm                                                                  |
-| Verify before done | `pnpm lint` and `pnpm type-check` (and `pnpm test` for logic changes) |
+| Topic           | Value                                                          |
+| --------------- | -------------------------------------------------------------- |
+| Framework       | Next.js 16 (App Router, Turbopack), React 19                   |
+| Language        | TypeScript, strict mode                                        |
+| Auth            | Auth.js v5 (`next-auth@beta`) with Google OAuth provider       |
+| Storage         | Google Drive API v3 (`googleapis`) — no database               |
+| Server state    | TanStack Query (`@tanstack/react-query`)                       |
+| Client state    | Zustand (`zustand`)                                            |
+| Forms           | `react-hook-form` + `@hookform/resolvers` + Zod                |
+| Styling         | Tailwind CSS v4 + `@tailwindcss/postcss`, CSS variable theming |
+| PDF export      | `window.print()` with `@media print` CSS                       |
+| i18n            | `next-intl` — default locale `es`, supported `es`, `en`        |
+| Testing         | Vitest + React Testing Library                                 |
+| Deployment      | Vercel (serverless)                                            |
+| Package manager | pnpm                                                           |
 
 ## Architecture rules
 
-This is a modular, microfrontend-ready app using Domain-Driven Design + Hexagonal layering.
+Modular app using DDD + Hexagonal layering.
 
-- **Modules are independent units** — each `src/modules/<name>/` owns its `domain`, `infrastructure`, and `presentation`.
-- **Public API pattern** — import from `@modules/<name>` (the barrel `index.ts`) only, never internal paths.
-- **Domain is pure** — `domain/` has ZERO framework imports; entities are Zod schemas with inferred types.
+- **Modules are independent units** — each `src/modules/<name>/` owns `domain`, `infrastructure`, `presentation`.
+- **Public API pattern** — import from `@modules/<name>` (barrel `index.ts`) only, never internal paths.
+- **Domain is pure** — `domain/` has ZERO framework imports; entities are Zod schemas.
 - **Ports & adapters** — `domain/interfaces/` declares contracts; `infrastructure/` implements them.
 - **SSR for optimization only** — business logic lives in modules, not in server actions or route handlers.
 
@@ -40,130 +51,129 @@ This is a modular, microfrontend-ready app using Domain-Driven Design + Hexagona
 
 ```
 src/
-├── app/            # App Router: routing + composition ONLY
-│   └── [lang]/     # (back-office) and (front-office) bounded contexts
-├── core/           # Shared kernel
-│   ├── api/        # openapi-fetch client + ApiProvider (preferred transport)
-│   ├── query/      # TanStack Query provider
-│   ├── http/       # Zod-validated fetch helper + getHttpClient() singleton
-│   └── providers.tsx
-├── modules/<name>/ # domain/ · infrastructure/ · presentation/ · index.ts
-└── shared/         # Global types, UI primitives, utils
+├── app/                # App Router: routing + composition ONLY
+│   ├── [locale]/       # i18n routing
+│   │   ├── (back-office)/  # Authenticated: /resumes, /editor/[id]
+│   │   └── (front-office)/ # Public: /login
+│   └── api/            # Route handlers: auth, cv CRUD
+├── auth.ts             # Auth.js v5 config (providers, callbacks)
+├── core/               # Shared kernel
+│   ├── query/          # TanStack Query provider
+│   └── providers.tsx   # App-level providers
+├── modules/
+│   ├── auth/           # User entity, session types
+│   ├── cv/             # Core domain: CvData, templates, form, preview
+│   ├── drive/          # Google Drive integration port + entity
+│   └── i18n/           # Locale config, translation messages
+└── shared/             # UI primitives (shadcn), utils, types
 ```
 
-## State management (critical)
+### Modules
 
-Choose by ownership. Never mirror server data into a client store.
+| Module  | Owns                                                            |
+| ------- | --------------------------------------------------------------- |
+| `auth`  | User entity, session types (auth config lives in `src/auth.ts`) |
+| `cv`    | CvData schema, templates, editor components, preview, hooks     |
+| `drive` | DriveFile entity, DriveRepository port                          |
+| `i18n`  | Locale config, translation JSON files                           |
 
-| Data owner             | Tool                                        | Location                             |
-| ---------------------- | ------------------------------------------- | ------------------------------------ |
-| Backend (async)        | TanStack Query (`useQuery` / `useMutation`) | `presentation/hooks/use-*.ts`        |
-| Browser session (sync) | Zustand `create()` store                    | `presentation/state/<name>.store.ts` |
+## State management
 
-```typescript
-// Client state — Zustand
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isAuthenticated: false,
-  setSession: (s) => set({ user: s.user, isAuthenticated: true }),
-  clearSession: () => set({ user: null, isAuthenticated: false }),
-}));
+| Data owner            | Tool           | Location                             |
+| --------------------- | -------------- | ------------------------------------ |
+| Google Drive (async)  | TanStack Query | `presentation/hooks/use-*.ts`        |
+| Editor session (sync) | Zustand        | `presentation/state/<name>.store.ts` |
 
-// Server state — TanStack Query
-const loginMutation = useMutation({
-  mutationFn: (creds: LoginCredentials) => loginUseCase.execute(creds),
-  onSuccess: (session) => setSession(session),
-});
-```
+No Redux, MobX, or centralized state managers.
 
-Do **NOT** introduce Redux, MobX, or other centralized state managers.
+## i18n (critical)
+
+- **All visible text** must use `next-intl` translation keys — never hardcode strings in components.
+- Messages live in `src/modules/i18n/messages/{locale}.json`.
+- Supported locales: `es` (default), `en`.
+- Client: `useTranslations()` hook. Server: `getTranslations()`.
+- When adding new UI text, add the key to **both** `es.json` and `en.json`.
 
 ## Forms
 
-Use `react-hook-form` with `zodResolver` exclusively. Define the schema with Zod, infer the value type, and wire fields via `register`.
+Use `react-hook-form` with `zodResolver` exclusively. Schemas from `@modules/cv` (e.g., `CvDataSchema`).
 
-```tsx
-const schema = z.object({ email: z.string().email(), password: z.string().min(1) });
-type Values = z.infer<typeof schema>;
-const { register, handleSubmit, formState: { errors } } =
-  useForm<Values>({ resolver: zodResolver(schema) });
-```
+## Auth
 
-## API access
+- Config in `src/auth.ts` — exports `{ handlers, signIn, signOut, auth }`.
+- Route handler at `src/app/api/auth/[...nextauth]/route.ts` re-exports handlers.
+- Google OAuth with `drive.file` scope for Drive access.
+- Session provides `accessToken` for Drive API calls.
 
-| Use case                                 | Transport                        | Where                          |
-| ---------------------------------------- | -------------------------------- | ------------------------------ |
-| Built-in API routes (monolithic default) | `fetch` / `getHttpClient()`      | `infrastructure/repositories/` |
-| Typed external OpenAPI from a hook       | `useApiClient()` / openapi-fetch | `presentation/hooks/`          |
-| Typed external OpenAPI behind a port     | `ApiCoreClient` via factory      | `infrastructure/repositories/` |
-| SSR / edge (no React tree)               | Direct `fetch` or openapi-fetch  | Server Components, `server.ts` |
+## API routes
 
-- Generate types: `pnpm openapi:gen` → `src/core/api/v1.ts` (git-ignored).
-- Build a client with `createApiCoreClient(baseUrl)`; inject it via `ApiProvider` and read with `useApiClient()`.
-- Do NOT hardcode API URLs; use env vars and the provider.
+| Route                    | Purpose                                       |
+| ------------------------ | --------------------------------------------- |
+| `api/auth/[...nextauth]` | Auth.js handler (Google OAuth)                |
+| `api/cv`                 | GET: list CVs from Drive. POST: create new CV |
+| `api/cv/[id]`            | GET/PUT/DELETE a specific CV                  |
 
 ## Styling
 
-- Tailwind CSS v4 only. **No SCSS** for new work.
-- Theming uses native CSS variables (see `docs/architecture/005_theming.md`), not per-build themes.
-
-## i18n
-
-- `next-intl` with config in `src/i18n/` (routing, request).
-- Messages in `src/modules/i18n/messages/{locale}.json`.
-- Client: `use-locale.ts` hook. Server: import from `server.ts`.
-
-## Input pacing (optional)
-
-`@tanstack/react-pacer` is not included by default. Install it when your fork needs debounce/throttle for search or live filters — never hand-roll `setTimeout` or add Lodash/RxJS for this.
+- Tailwind CSS v4 only. PostCSS via `@tailwindcss/postcss`.
+- Theming uses CSS variables (see `docs/architecture/005_theming.md`).
+- CV preview uses inline styles for print accuracy — this is intentional.
 
 ## Naming conventions
 
-| Thing          | Convention                                          |
-| -------------- | --------------------------------------------------- |
-| Files          | `kebab-case.ts` / `kebab-case.tsx`                  |
-| Components     | `PascalCase`                                        |
-| Hooks          | `use-<name>.ts` exporting `useName()`               |
-| Zustand stores | `<name>.store.ts` exporting `useNameStore`          |
-| Entities       | `<name>.ts` with `NameSchema` + inferred `Name`     |
-| Ports          | `<name>-repository.interface.ts`                    |
-| Mappers        | `<name>.mapper.ts` exporting `<Name>Mapper` object  |
-| Module wiring  | `<name>.factory.ts` exporting `getX()` accessors    |
-| Server barrel  | Optional `server.ts` for server-only module exports |
+| Thing          | Convention                                       |
+| -------------- | ------------------------------------------------ |
+| Files          | `kebab-case.ts` / `kebab-case.tsx`               |
+| Components     | `PascalCase`                                     |
+| Hooks          | `use-<name>.ts` exporting `useName()`            |
+| Zustand stores | `<name>.store.ts` exporting `useNameStore`       |
+| Entities       | `<name>.ts` with `NameSchema` + inferred `Name`  |
+| Ports          | `<name>-repository.interface.ts`                 |
+| Module wiring  | `<name>.factory.ts` exporting `getX()` accessors |
 
 ## What NOT to do
 
+- No hardcoded visible text — use i18n keys.
 - No Redux / centralized state managers.
 - No SCSS for new styles.
-- No `reflect-metadata`, decorators, DI containers, or service locators — wire dependencies with plain module imports / factory functions.
+- No `reflect-metadata`, decorators, DI containers, or service locators.
 - No business logic in server actions or route handlers.
 - No imports from another module's internal paths.
 - No `any` — use Zod schemas and inferred types.
-- No proprietary product names — this template is business-logic agnostic. _(Template default: remove this line once you fork into a real product.)_
+- No direct Google Drive calls from components — go through the `drive` module port.
+
+## Documentation index
+
+| Doc                                                                                                    | Purpose                                                        |
+| ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| [docs/agents/00_index.md](docs/agents/00_index.md)                                                     | Agent reference hub                                            |
+| [docs/agents/01_directory-structure.md](docs/agents/01_directory-structure.md)                         | Module layout details                                          |
+| [docs/agents/02_mappers-and-boundary-validation.md](docs/agents/02_mappers-and-boundary-validation.md) | Wire → domain mapping rules                                    |
+| [docs/agents/03_api-access-and-transport.md](docs/agents/03_api-access-and-transport.md)               | Transport gate and patterns                                    |
+| [docs/agents/05_shared-ui-library.md](docs/agents/05_shared-ui-library.md)                             | Shared UI decision gate                                        |
+| [docs/architecture/](docs/architecture/)                                                               | Architecture hub (folder structure, state, theming, data flow) |
+| [docs/getting-started/](docs/getting-started/)                                                         | Setup and commands                                             |
 
 ## Agent playbooks
 
 ### Implementer
 
-1. Locate the correct layer: `domain` (pure logic), `infrastructure` (adapters), `presentation` (React).
+1. Locate the layer: `domain`, `infrastructure`, or `presentation`.
 2. Model data with Zod; expose the module only through `index.ts`.
-3. Server data → TanStack Query; client facts → Zustand; forms → react-hook-form + Zod.
-4. Add tests for new components, hooks, and use cases.
+3. Drive data → TanStack Query; editor state → Zustand; forms → react-hook-form + Zod.
+4. All text → i18n keys in `es.json` + `en.json`.
+5. Add tests for new hooks, use cases, and components.
 
 ### Debugger
 
 1. **Identify** the layer (domain / infrastructure / presentation / core).
-2. **Isolate** with a unit test that reproduces the bug.
-3. **Trace** the flow: Component → Hook (Query) → Use Case → Repository → API client.
-4. **Fix** in the correct layer; **verify** with `pnpm test` and `pnpm type-check`.
-   - Query issues: check `queryKey`, `staleTime`, and provider placement.
-   - Store issues: check selector usage and action wiring.
-   - API issues: verify `NEXT_PUBLIC_API_URL`, generated types, and tenant headers.
+2. **Trace**: Component → Hook (Query) → Use Case → Repository → Drive API.
+3. **Fix** in the correct layer; **verify** with `pnpm type-check` and `pnpm test`.
 
-### Reviewer / mentor
+### Reviewer
 
-- Does the change respect module boundaries (no internal imports)?
-- Is logic in the right layer (domain, not presentation)?
-- Is server data in Query and client state in Zustand (not conflated)?
-- Are inputs/outputs validated with Zod?
-- Are there tests, and is the code accessible (ARIA, semantic HTML)?
+- Module boundaries respected?
+- All visible text uses i18n keys?
+- Drive data in Query, editor state in Zustand?
+- Inputs validated with Zod?
+- CV preview components use inline styles for print fidelity?

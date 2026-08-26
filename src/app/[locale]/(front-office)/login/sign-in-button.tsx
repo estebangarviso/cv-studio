@@ -1,8 +1,11 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { signIn } from 'next-auth/react';
 
 export function SignInButton() {
+  const t = useTranslations('login');
+
   return (
     <button
       type="button"
@@ -27,7 +30,7 @@ export function SignInButton() {
           fill="#EA4335"
         />
       </svg>
-      Continuar con Google
+      {t('signInWithGoogle')}
     </button>
   );
 }

@@ -1,15 +1,29 @@
 {
 	"nav": {
-		"home": "Inicio",
-		"dashboard": "Panel"
+		"resumes": "Mis Currículos",
+		"editor": "Editor"
 	},
-	"home": {
-		"welcome": "Template inicializado correctamente.",
-		"title": "Bienvenido"
+	"login": {
+		"title": "CV Studio",
+		"description": "Crea y gestiona tus currículos con vista previa en tiempo real y almacenamiento en Google Drive.",
+		"signInWithGoogle": "Continuar con Google"
+	},
+	"resumes": {
+		"title": "Mis Currículos",
+		"empty": "Tus CVs guardados en Google Drive aparecerán aquí.",
+		"create": "Crear CV"
+	},
+	"editor": {
+		"title": "Editor",
+		"preview": "Vista previa",
+		"exportPdf": "Exportar PDF"
 	},
 	"common": {
 		"loading": "Cargando...",
 		"error": "Algo salió mal",
-		"notFound": "Página no encontrada"
+		"notFound": "Página no encontrada",
+		"save": "Guardar",
+		"cancel": "Cancelar",
+		"delete": "Eliminar"
 	}
 }

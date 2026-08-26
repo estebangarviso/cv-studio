@@ -1,15 +1,29 @@
 {
-  "nav": {
-    "home": "Home",
-    "dashboard": "Dashboard"
-  },
-  "home": {
-    "welcome": "Template initialized successfully.",
-    "title": "Welcome"
-  },
-  "common": {
-    "loading": "Loading...",
-    "error": "Something went wrong",
-    "notFound": "Page not found"
-  }
+	"nav": {
+		"resumes": "My Resumes",
+		"editor": "Editor"
+	},
+	"login": {
+		"title": "CV Studio",
+		"description": "Create and manage your resumes with real-time preview and Google Drive storage.",
+		"signInWithGoogle": "Continue with Google"
+	},
+	"resumes": {
+		"title": "My Resumes",
+		"empty": "Your CVs saved in Google Drive will appear here.",
+		"create": "Create CV"
+	},
+	"editor": {
+		"title": "Editor",
+		"preview": "Preview",
+		"exportPdf": "Export PDF"
+	},
+	"common": {
+		"loading": "Loading...",
+		"error": "Something went wrong",
+		"notFound": "Page not found",
+		"save": "Save",
+		"cancel": "Cancel",
+		"delete": "Delete"
+	}
 }
