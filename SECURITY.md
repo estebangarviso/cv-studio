@@ -8,9 +8,9 @@ Do not open public issues for exploitable bugs. Use GitHub Security Advisories o
 
 ## Supported versions
 
-| Version | Supported |
-|---------|-----------|
-| Latest on `main` | Yes |
+| Version          | Supported |
+| ---------------- | --------- |
+| Latest on `main` | Yes       |
 
 ## Security checklist
 
