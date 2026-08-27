@@ -127,3 +127,30 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+@media print {
+	@page {
+		size: A4;
+		margin: 0;
+	}
+
+	body {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	.print\:hidden {
+		display: none !important;
+	}
+
+	.print\:block {
+		display: block !important;
+	}
+
+	.cv-preview {
+		width: 100% !important;
+		min-height: auto !important;
+		box-shadow: none !important;
+		margin: 0 !important;
+	}
+}

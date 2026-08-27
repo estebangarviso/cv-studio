@@ -6,3 +6,6 @@ export type { CvRepository } from './domain/interfaces/cv-repository.interface';
 export { getSaveCvUseCase, getLoadCvUseCase, setCvRepository } from './infrastructure/cv.factory';
 export { useCvEditorStore } from './presentation/state/cv-editor.store';
 export { useCvList, useCv, useSaveCv } from './presentation/hooks/use-cv';
+export { CvForm } from './presentation/components/cv-form';
+export { CvPreview } from './presentation/components/cv-preview';
+export { PrintButton } from './presentation/components/print-button';
